@@ -2,11 +2,14 @@ import { useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import styles from "./styles.module.css";
-
+import { useNavigate } from "react-router-dom";
 const Login = () => {
+
 	const [data, setData] = useState({ email: "", password: "" });
 	const [error, setError] = useState("");
 
+	const navigate = useNavigate();
+	
 	const handleChange = ({ currentTarget: input }) => {
 		setData({ ...data, [input.name]: input.value });
 	};
@@ -14,15 +17,23 @@ const Login = () => {
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		try {
-			const url = "http://localhost:8000/api/auth";
+			const url = "http://localhost:8000/api/users/login";
 			const { data: res } = await axios.post(url, data);
-			localStorage.setItem("token", res.data);
-			window.location = "/";
+			localStorage.setItem("token", res.accessToken);
+			if(res.status){
+				navigate("/home")
+				console.log(res)
+				alert(res.message);
+			}else{
+				alert(res.message);
+				setError(error.response.data.message);
+			}
+
 		} catch (error) {
 			if (
 				error.response &&
 				error.response.status >= 400 &&
-				error.response.status <= 500
+				error.response.status <= 500 && error.response.status >= 200
 			) {
 				setError(error.response.data.message);
 			}
@@ -32,7 +43,7 @@ const Login = () => {
 	return (
 		<div className={styles.login_container}>
 			<div className={styles.login_form_container}>
-				<div className={styles.left}>
+				<div className={styles.left} >
 					<form className={styles.form_container} onSubmit={handleSubmit}>
 						<h1>Login to Your Account</h1>
 						<input
@@ -57,16 +68,12 @@ const Login = () => {
 						<button type="submit" className={styles.green_btn}>
 							Sing In
 						</button>
+						<h4>Don`t have account ?</h4> <Link to="/signup"> <button type="button" className={styles.white_btn}>
+							Sing Up
+						</button></Link>
 					</form>
 				</div>
-				<div className={styles.right}>
-					<h1>New Here ?</h1>
-					<Link to="/signup">
-						<button type="button" className={styles.white_btn}>
-							Sing Up
-						</button>
-					</Link>
-				</div>
+				
 			</div>
 		</div>
 	);
